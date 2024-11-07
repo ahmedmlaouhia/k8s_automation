@@ -63,7 +63,7 @@
     - name: 7. Place Default Containerd Config Inside It
       ansible.builtin.shell: |
         set -o pipefail
-        containerd config default | sudo tee /etc/containerd/config.toml
+        containerd config default | tee /etc/containerd/config.toml
       register: output
       changed_when: output.rc != 0
       args:
@@ -85,7 +85,7 @@
         - containerd_config
 
     - name: 8.1 Disable Swap
-      ansible.builtin.command: sudo swapoff -a
+      ansible.builtin.command: swapoff -a
       register: output
       changed_when: output.rc != 0
       tags:
@@ -186,7 +186,7 @@
       ansible.builtin.shell: |
         set -o pipefail
         echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /' \
-        | sudo tee /etc/apt/sources.list.d/kubernetes.list
+        | tee /etc/apt/sources.list.d/kubernetes.list
       register: apt_output
       changed_when: apt_output.rc != 0
       args:
@@ -231,7 +231,7 @@
     - name: 1. Initialize Cluster
       ansible.builtin.shell: |
         set -o pipefail
-        sudo kubeadm init --control-plane-endpoint={{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }} --pod-network-cidr=10.0.0.0/16
+        kubeadm init --control-plane-endpoint={{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }} --pod-network-cidr=10.0.0.0/16
       register: init_cluster_output
       changed_when: init_cluster_output.rc != 0
       args:
@@ -261,10 +261,12 @@
       tags:
         - kube_admin_config
 
-    - name: 3. Install An Overlay Network
-      ansible.builtin.command: kubectl apply -f https://raw.githubusercontent.com/ahmedmlaouhia/flannel-conf/refs/heads/main/kube-flannel.yml
-      register: init_cluster_output
-      changed_when: init_cluster_output.rc != 0
+    - name: Install Kubernetes Network Overlay
+      community.general.kubernetes:
+        src: https://raw.githubusercontent.com/ahmedmlaouhia/flannel-conf/refs/heads/main/kube-flannel.yml
+        state: present
+      tags:
+        - network_overlay
       become: false
 
     - name: 12.1 Reboot
