@@ -180,7 +180,7 @@ resource "aws_key_pair" "k8s_key_pair" {
 
 
 # create controle plane instances
-resource "aws_instance" "k8s-Control1" {
+resource "aws_instance" "k8s-Control" {
   subnet_id              = aws_subnet.k8s_subnet.id
   instance_type          = "t2.medium"
   ami                    = "ami-0866a3c8686eaeeba"
@@ -188,7 +188,7 @@ resource "aws_instance" "k8s-Control1" {
   key_name               = aws_key_pair.k8s_key_pair.key_name
   user_data              = <<-EOF
                             #!/bin/bash
-                            hostnamectl set-hostname k8s-Control-plane-1
+                            hostnamectl set-hostname Control-plane
                             EOF
   root_block_device {
     volume_size           = 20
@@ -198,33 +198,7 @@ resource "aws_instance" "k8s-Control1" {
     delete_on_termination = true
   }
   tags = {
-    Name = "k8s-Control-plane-1"
-  }
-  lifecycle {
-    ignore_changes = [associate_public_ip_address]
-  }
-}
-
-resource "aws_instance" "k8s-Control2" {
-  subnet_id              = aws_subnet.k8s_subnet.id
-  instance_type          = "t2.medium"
-  ami                    = "ami-0866a3c8686eaeeba"
-  vpc_security_group_ids = [aws_security_group.k8s_security_group.id]
-  key_name               = aws_key_pair.k8s_key_pair.key_name
-  user_data              = <<-EOF
-                            #!/bin/bash
-                            hostnamectl set-hostname k8s-Control-plane-2
-                            EOF
-  root_block_device {
-    volume_size           = 20
-    volume_type           = "gp3"
-    iops                  = 3000
-    throughput            = 125
-    delete_on_termination = true
-  }
-
-  tags = {
-    Name = "k8s-Control-plane-2"
+    Name = "Control-plane"
   }
   lifecycle {
     ignore_changes = [associate_public_ip_address]
@@ -232,7 +206,7 @@ resource "aws_instance" "k8s-Control2" {
 }
 
 # create worker nodes
-resource "aws_instance" "k8s-Worker1" {
+resource "aws_instance" "k8s-Worker" {
   subnet_id              = aws_subnet.k8s_subnet.id
   instance_type          = "t2.medium"
   ami                    = "ami-0866a3c8686eaeeba"
@@ -240,7 +214,7 @@ resource "aws_instance" "k8s-Worker1" {
   key_name               = aws_key_pair.k8s_key_pair.key_name
   user_data              = <<-EOF
                             #!/bin/bash
-                            hostnamectl set-hostname k8s-Worker-1
+                            hostnamectl set-hostname Worker
                             EOF
   root_block_device {
     volume_size = 20
@@ -250,111 +224,32 @@ resource "aws_instance" "k8s-Worker1" {
   }
 
   tags = {
-    Name = "k8s-Worker-1"
+    Name = "Worker"
   }
   lifecycle {
     ignore_changes = [associate_public_ip_address]
   }
-}
-
-resource "aws_instance" "k8s-Worker2" {
-  subnet_id              = aws_subnet.k8s_subnet.id
-  instance_type          = "t2.medium"
-  ami                    = "ami-0866a3c8686eaeeba"
-  vpc_security_group_ids = [aws_security_group.k8s_security_group.id]
-  key_name               = aws_key_pair.k8s_key_pair.key_name
-  user_data              = <<-EOF
-                            #!/bin/bash
-                            hostnamectl set-hostname k8s-Worker-2
-                            EOF
-
-  root_block_device {
-    volume_size = 20
-    volume_type = "gp3"
-    iops        = 3000
-    throughput  = 125
-  }
-  tags = {
-    Name = "k8s-Worker-2"
-  }
-  lifecycle {
-    ignore_changes = [associate_public_ip_address]
-  }
-}
-
-resource "aws_instance" "k8s-Worker3" {
-  subnet_id              = aws_subnet.k8s_subnet.id
-  instance_type          = "t2.medium"
-  ami                    = "ami-0866a3c8686eaeeba"
-  vpc_security_group_ids = [aws_security_group.k8s_security_group.id]
-  key_name               = aws_key_pair.k8s_key_pair.key_name
-  user_data              = <<-EOF
-                            #!/bin/bash
-                            hostnamectl set-hostname k8s-Worker-3
-                            EOF
-  root_block_device {
-    volume_size = 20
-    volume_type = "gp3"
-    iops        = 3000
-    throughput  = 125
-  }
-  tags = {
-    Name = "k8s-Worker-3"
-  }
-  lifecycle {
-    ignore_changes = [associate_public_ip_address]
-  }
-
 }
 
 # create elastic IPs for control plane instances
-resource "aws_eip" "k8s-control1-eip" {
+resource "aws_eip" "k8s-control-eip" {
   domain   = "vpc"
-  instance = aws_instance.k8s-Control1.id
-}
-
-resource "aws_eip" "k8s-control2-eip" {
-  domain   = "vpc"
-  instance = aws_instance.k8s-Control2.id
+  instance = aws_instance.k8s-Control.id
 }
 
 # create elastic IPs for worker nodes
-resource "aws_eip" "k8s-worker1-eip" {
+resource "aws_eip" "k8s-worker-eip" {
   domain   = "vpc"
-  instance = aws_instance.k8s-Worker1.id
+  instance = aws_instance.k8s-Worker.id
 }
 
-resource "aws_eip" "k8s-worker2-eip" {
-  domain   = "vpc"
-  instance = aws_instance.k8s-Worker2.id
+
+output "k8s_control_eip" {
+  value       = aws_eip.k8s-control-eip.public_ip
+  description = "Elastic IP of Control-plane"
 }
 
-resource "aws_eip" "k8s-worker3-eip" {
-  domain   = "vpc"
-  instance = aws_instance.k8s-Worker3.id
-}
-
-output "k8s_control1_eip" {
-  value       = aws_eip.k8s-control1-eip.public_ip
-  description = "Elastic IP of k8s-Control1"
-}
-
-output "k8s_control2_eip" {
-  value       = aws_eip.k8s-control2-eip.public_ip
-  description = "Elastic IP of k8s-Control2"
-}
-
-output "k8s_worker1_eip" {
-  value       = aws_eip.k8s-worker1-eip.public_ip
-  description = "Elastic IP of k8s-Worker1"
-}
-
-output "k8s_worker2_eip" {
-  value       = aws_eip.k8s-worker2-eip.public_ip
-  description = "Elastic IP of k8s-Worker2"
-}
-
-output "k8s_worker3_eip" {
-  value       = aws_eip.k8s-worker3-eip.public_ip
-  description = "Elastic IP of k8s-Worker3"
+output "k8s_worker_eip" {
+  value       = aws_eip.k8s-worker-eip.public_ip
+  description = "Elastic IP of Worker-node"
 }

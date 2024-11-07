@@ -275,21 +275,10 @@
       ansible.builtin.ping:
       when: system_reboot.rebooted
 
-    - name: 4.1 Generate a Certificate Key for Additional Control Planes
-      ansible.builtin.command: kubeadm init phase upload-certs --upload-certs
-      register: cert_key_output
-      become: true
-
     - name: 4.2 Generate Join String
       ansible.builtin.command: kubeadm token create --print-join-command
       register: join_command_output
       become: true
-
-    - name: 5.2 Create Control Plane Connection String
-      ansible.builtin.copy:
-        content: "{{ join_command_output.stdout }} --control-plane --certificate-key {{ cert_key_output.stdout.split()[-1] }}"
-        dest: control_plane_conn_string
-        mode: "0755"
 
     - name: 5.3 Create Worker Connection String
       ansible.builtin.copy:
@@ -301,28 +290,11 @@
   hosts: first_controller
   gather_facts: true
   tasks:
-    - name: Fetch control plane connection string
-      ansible.builtin.fetch:
-        src: control_plane_conn_string
-        dest: control_plane_conn_string
-        flat: true
-
     - name: Fetch worker connection string
       ansible.builtin.fetch:
         src: worker_conn_string
         dest: worker_conn_string
         flat: true
-
-- name: Join second control node
-  gather_facts: true
-  hosts: second-controller
-  become: true
-  vars:
-    control_join_string: "{{ lookup('ansible.builtin.file', 'control_plane_conn_string') }}"
-  tasks:
-    - name: 1. Add second control plane To The Cluster
-      ansible.builtin.command: "{{ control_join_string }}"
-      changed_when: false
 
 - name: Join Worker Nodes
   gather_facts: true
