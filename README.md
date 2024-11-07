@@ -16,15 +16,15 @@ Create an inventory file named `inventory` in the root directory of the project.
 
 ```
 [first_controller]
-34.238.104.115  # k8s_control1_eip
+# k8s_control1_eip
 
 [second-controller]
-52.207.157.123  # k8s_control2_eip
+# k8s_control2_eip
 
 [workers]
-44.213.251.231  # k8s_worker1_eip
-54.237.131.34   # k8s_worker2_eip
-52.205.22.154   # k8s_worker3_eip
+# k8s_worker1_eip
+# k8s_worker2_eip
+# k8s_worker3_eip
 
 [instance:children]
 first_controller
