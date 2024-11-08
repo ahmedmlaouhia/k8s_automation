@@ -342,6 +342,7 @@
     - name: 12.1 Reboot
       ansible.builtin.reboot:
       register: system_reboot
+      become: true
 
     - name: 12.2 Verify Reboot Success
       ansible.builtin.ping:
