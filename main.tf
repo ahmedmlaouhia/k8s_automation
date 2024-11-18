@@ -31,6 +31,14 @@ resource "aws_security_group" "k8s_security_group" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    description = "Allow 8080"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = [aws_subnet.k8s_subnet.cidr_block]
+  }
+
   # Allow SSH access from the internet
   ingress {
     description = "SSH Access"

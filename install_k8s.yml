@@ -324,6 +324,24 @@
       ansible.builtin.command: "{{ control_join_string }}"
       changed_when: false
 
+    # Add these tasks to set up kubectl for the ubuntu user
+    - name: 2.1 Create .kube Directory for the ubuntu User
+      ansible.builtin.file:
+        path: /home/ubuntu/.kube
+        state: directory
+        mode: "0755"
+
+    - name: 2.2 Copy Kubernetes Admin Config to User's .kube Directory
+      ansible.builtin.copy:
+        remote_src: true
+        src: /etc/kubernetes/admin.conf
+        dest: /home/ubuntu/.kube/config
+        mode: "0755"
+
+    - name: 2.3 Change Ownership of .kube/config to the ubuntu User
+      ansible.builtin.command: chown ubuntu:ubuntu /home/ubuntu/.kube/config
+      changed_when: false
+
 - name: Join Worker Nodes
   gather_facts: true
   hosts: workers
