@@ -1,8 +1,8 @@
 inventory
 terraform.tfstate
-.terraform.tfstate.backup
+terraform.tfstate.backup
 .vscode
 .terraform
-terraform.lock.hcl
+.terraform.lock.hcl
 control_plane_conn_string
 worker_conn_string
