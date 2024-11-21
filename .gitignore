@@ -1,6 +1,6 @@
 inventory
 terraform.tfstate
-terraform.tfstate.backup
+.terraform.tfstate.backup
 .vscode
 .terraform
 terraform.lock.hcl
