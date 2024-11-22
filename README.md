@@ -1,4 +1,4 @@
-# Kubernetes Cluster Setup
+# Kubernetes Cluster Setup (still not updated)
 
 This project contains configuration files and playbooks to set up a multi-node Kubernetes cluster. Follow the instructions below to create an Ansible inventory file with your specific IPs to allow Ansible to connect and configure each instance.
 
